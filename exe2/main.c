@@ -8,7 +8,7 @@
 
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
-#include "mpu6050.h"
+#include "mpu6050.h"  // Certifique-se que MPUREG_INT_ENABLE está definido aqui (normalmente 0x38)
 
 const int I2C_CHIP_ADDRESS = 0x68;
 const int I2C_SDA_GPIO = 20;
@@ -22,15 +22,18 @@ void i2c_task(void *p) {
     gpio_pull_up(I2C_SCL_GPIO);
 
     uint8_t buffer[6];
+    uint8_t reg_address;
 
-    // read whoami
-    uint8_t reg_address = 0x75;
-    i2c_write_blocking(i2c_default, I2C_CHIP_ADDRESS, &reg_address, 1, true); // true to keep master control of bus
+    // Leitura do registrador WHOAMI (endereço 0x75)
+    reg_address = 0x75;
+    i2c_write_blocking(i2c_default, I2C_CHIP_ADDRESS, &reg_address, 1, true); // true para manter controle do barramento
     i2c_read_blocking(i2c_default, I2C_CHIP_ADDRESS, buffer, 1, false);
     printf("WHOAMI: 0x%X \n", buffer[0]);
 
-    // TODO
-    // Leia o INT_ENABLE e imprima o valor
+    // Leitura do registrador INT_ENABLE (endereço definido por MPUREG_INT_ENABLE, normalmente 0x38)
+    reg_address = MPUREG_INT_ENABLE;  // ou 0x38 se não estiver definido no header
+    i2c_write_blocking(i2c_default, I2C_CHIP_ADDRESS, &reg_address, 1, true);
+    i2c_read_blocking(i2c_default, I2C_CHIP_ADDRESS, buffer, 1, false);
     printf("INT_ENABLE: 0x%X \n", buffer[0]);
 
     while (1) {
